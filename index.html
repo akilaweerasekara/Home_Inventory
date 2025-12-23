@@ -1,0 +1,2483 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FamilySync - Home Inventory Management</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* ===== BASE STYLES ===== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        :root {
+            --primary: #4361ee;
+            --primary-dark: #3a0ca3;
+            --secondary: #4cc9f0;
+            --success: #4ade80;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --light: #f8f9fa;
+            --dark: #212529;
+            --gray: #6c757d;
+            --light-gray: #e9ecef;
+            --border-radius: 12px;
+            --shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            --transition: all 0.3s ease;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #f5f7ff 0%, #e3e9ff 100%);
+            color: var(--dark);
+            line-height: 1.6;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        /* ===== LOADING OVERLAY ===== */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.95);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+        }
+        
+        .spinner {
+            width: 60px;
+            height: 60px;
+            border: 5px solid var(--light-gray);
+            border-top: 5px solid var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 20px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        /* ===== HEADER ===== */
+        header {
+            background: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            padding: 20px 30px;
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .logo-icon {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 24px;
+        }
+        
+        .logo-text h1 {
+            font-size: 24px;
+            color: var(--primary-dark);
+            margin-bottom: 5px;
+        }
+        
+        .logo-text p {
+            font-size: 14px;
+            color: var(--gray);
+        }
+        
+        .user-section {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            position: relative;
+        }
+        
+        .user-avatar {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 18px;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+        
+        .user-avatar:hover {
+            transform: scale(1.05);
+        }
+        
+        .user-dropdown {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            background: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            min-width: 250px;
+            margin-top: 10px;
+            z-index: 100;
+            display: none;
+        }
+        
+        .user-dropdown.show {
+            display: block;
+            animation: fadeInUp 0.3s ease;
+        }
+        
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .user-info {
+            padding: 20px;
+            border-bottom: 1px solid var(--light-gray);
+        }
+        
+        .user-name {
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+        
+        .user-email {
+            font-size: 14px;
+            color: var(--gray);
+        }
+        
+        .dropdown-item {
+            padding: 12px 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+        
+        .dropdown-item:hover {
+            background: var(--light);
+        }
+        
+        .dropdown-item.logout {
+            color: var(--danger);
+        }
+        
+        /* ===== TABS ===== */
+        .tabs-container {
+            background: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            margin-bottom: 30px;
+            overflow: hidden;
+        }
+        
+        .tabs {
+            display: flex;
+            overflow-x: auto;
+            padding: 5px;
+        }
+        
+        .tab {
+            padding: 15px 25px;
+            white-space: nowrap;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border-radius: 8px;
+            margin: 0 5px;
+        }
+        
+        .tab:hover {
+            background: var(--light);
+        }
+        
+        .tab.active {
+            background: var(--primary);
+            color: white;
+        }
+        
+        /* ===== CONTENT SECTIONS ===== */
+        .content-section {
+            display: none;
+            background: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            padding: 30px;
+            margin-bottom: 30px;
+            animation: fadeIn 0.5s ease;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        .content-section.active {
+            display: block;
+        }
+        
+        .section-header {
+            margin-bottom: 30px;
+        }
+        
+        .section-title {
+            font-size: 24px;
+            color: var(--primary-dark);
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .section-subtitle {
+            color: var(--gray);
+            font-size: 16px;
+        }
+        
+        /* ===== FORMS ===== */
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+            margin-bottom: 25px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--dark);
+        }
+        
+        .form-control {
+            width: 100%;
+            padding: 14px 16px;
+            border: 2px solid var(--light-gray);
+            border-radius: 8px;
+            font-size: 16px;
+            transition: var(--transition);
+        }
+        
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.15);
+        }
+        
+        .form-textarea {
+            min-height: 120px;
+            resize: vertical;
+        }
+        
+        .form-row {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .radio-group {
+            display: flex;
+            gap: 30px;
+            margin-top: 10px;
+        }
+        
+        .radio-option {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+        }
+        
+        .radio-option input[type="radio"] {
+            width: 20px;
+            height: 20px;
+            accent-color: var(--primary);
+        }
+        
+        /* ===== PHOTO UPLOAD ===== */
+        .photo-upload-area {
+            border: 3px dashed var(--light-gray);
+            border-radius: var(--border-radius);
+            padding: 40px 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: var(--transition);
+            margin-bottom: 20px;
+        }
+        
+        .photo-upload-area:hover {
+            border-color: var(--primary);
+            background: var(--light);
+        }
+        
+        .photo-preview {
+            max-width: 300px;
+            max-height: 300px;
+            border-radius: var(--border-radius);
+            margin: 20px auto;
+            display: none;
+            box-shadow: var(--shadow);
+        }
+        
+        /* ===== BUTTONS ===== */
+        .btn {
+            padding: 14px 28px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(67, 97, 238, 0.2);
+        }
+        
+        .btn-success {
+            background: var(--success);
+            color: white;
+        }
+        
+        .btn-warning {
+            background: var(--warning);
+            color: white;
+        }
+        
+        .btn-danger {
+            background: var(--danger);
+            color: white;
+        }
+        
+        .btn-block {
+            width: 100%;
+            justify-content: center;
+        }
+        
+        /* ===== SEARCH ===== */
+        .search-container {
+            background: var(--light);
+            border-radius: var(--border-radius);
+            padding: 25px;
+            margin-bottom: 30px;
+        }
+        
+        .search-box {
+            display: flex;
+            gap: 15px;
+        }
+        
+        .search-input {
+            flex: 1;
+            padding: 15px 20px;
+            border: 2px solid var(--light-gray);
+            border-radius: 8px;
+            font-size: 16px;
+        }
+        
+        /* ===== INVENTORY GRID ===== */
+        .inventory-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 25px;
+        }
+        
+        .inventory-card {
+            background: white;
+            border-radius: var(--border-radius);
+            box-shadow: 0 3px 15px rgba(0, 0, 0, 0.08);
+            overflow: hidden;
+            transition: var(--transition);
+            border-left: 5px solid var(--primary);
+        }
+        
+        .inventory-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.12);
+        }
+        
+        .inventory-card.private {
+            border-left-color: var(--warning);
+        }
+        
+        .card-header {
+            padding: 20px;
+            border-bottom: 1px solid var(--light-gray);
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+        
+        .card-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--primary-dark);
+            margin-bottom: 5px;
+        }
+        
+        .card-category {
+            display: inline-block;
+            padding: 4px 12px;
+            background: var(--light);
+            border-radius: 20px;
+            font-size: 14px;
+            color: var(--gray);
+            margin-bottom: 10px;
+        }
+        
+        .private-badge {
+            background: var(--warning);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .card-body {
+            padding: 20px;
+        }
+        
+        .card-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 12px;
+            color: var(--gray);
+        }
+        
+        .card-photo {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+        
+        .card-description {
+            color: var(--dark);
+            line-height: 1.5;
+            margin-bottom: 20px;
+        }
+        
+        .card-footer {
+            padding: 15px 20px;
+            background: var(--light);
+            border-top: 1px solid var(--light-gray);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .card-date {
+            font-size: 14px;
+            color: var(--gray);
+        }
+        
+        .card-actions {
+            display: flex;
+            gap: 10px;
+        }
+        
+        /* ===== STATS ===== */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .stat-card {
+            background: white;
+            border-radius: var(--border-radius);
+            padding: 25px;
+            text-align: center;
+            box-shadow: var(--shadow);
+        }
+        
+        .stat-value {
+            font-size: 36px;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 10px;
+        }
+        
+        .stat-label {
+            font-size: 16px;
+            color: var(--gray);
+        }
+        
+        /* ===== MODALS ===== */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            padding: 20px;
+        }
+        
+        .modal {
+            background: white;
+            border-radius: var(--border-radius);
+            max-width: 500px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            animation: modalSlideIn 0.3s ease;
+        }
+        
+        @keyframes modalSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .modal-header {
+            padding: 25px 30px;
+            border-bottom: 1px solid var(--light-gray);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .modal-title {
+            font-size: 22px;
+            color: var(--primary-dark);
+        }
+        
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: var(--gray);
+        }
+        
+        .modal-body {
+            padding: 30px;
+        }
+        
+        /* ===== USER MANAGEMENT ===== */
+        .users-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 20px;
+        }
+        
+        .user-card {
+            background: white;
+            border-radius: var(--border-radius);
+            padding: 25px;
+            text-align: center;
+            box-shadow: var(--shadow);
+            transition: var(--transition);
+        }
+        
+        .user-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .user-card-avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            font-weight: bold;
+            margin: 0 auto 15px;
+        }
+        
+        .user-card-name {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+        
+        .user-card-role {
+            display: inline-block;
+            padding: 4px 12px;
+            background: var(--light);
+            border-radius: 20px;
+            font-size: 14px;
+            color: var(--gray);
+            margin-bottom: 15px;
+        }
+        
+        .user-card-stats {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid var(--light-gray);
+        }
+        
+        .stat-small {
+            text-align: center;
+        }
+        
+        .stat-small-value {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--primary);
+        }
+        
+        .stat-small-label {
+            font-size: 12px;
+            color: var(--gray);
+            margin-top: 5px;
+        }
+        
+        /* ===== FOOTER ===== */
+        footer {
+            text-align: center;
+            padding: 30px;
+            color: var(--gray);
+            font-size: 14px;
+            margin-top: 40px;
+        }
+        
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 768px) {
+            header {
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            .tabs {
+                flex-wrap: wrap;
+            }
+            
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .inventory-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .search-box {
+                flex-direction: column;
+            }
+        }
+        
+        /* ===== NOTIFICATIONS ===== */
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            padding: 20px;
+            min-width: 300px;
+            z-index: 1001;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            transform: translateX(400px);
+            transition: transform 0.3s ease;
+        }
+        
+        .notification.show {
+            transform: translateX(0);
+        }
+        
+        .notification-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            color: white;
+        }
+        
+        .notification-success .notification-icon {
+            background: var(--success);
+        }
+        
+        .notification-error .notification-icon {
+            background: var(--danger);
+        }
+        
+        .notification-warning .notification-icon {
+            background: var(--warning);
+        }
+        
+        /* ===== EMPTY STATE ===== */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+        }
+        
+        .empty-state-icon {
+            font-size: 64px;
+            color: var(--light-gray);
+            margin-bottom: 20px;
+        }
+        
+        .empty-state-title {
+            font-size: 24px;
+            color: var(--gray);
+            margin-bottom: 10px;
+        }
+        
+        .empty-state-text {
+            color: var(--gray);
+            max-width: 500px;
+            margin: 0 auto 30px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="spinner"></div>
+        <h3>Loading FamilySync...</h3>
+        <p>Initializing storage and user data</p>
+    </div>
+
+    <!-- Login Modal -->
+    <div class="modal-overlay" id="loginModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 class="modal-title">Welcome to FamilySync</h2>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label">Select Family Member</label>
+                    <select class="form-control" id="loginUserSelect">
+                        <option value="">Choose a user...</option>
+                        <!-- Users will be populated here -->
+                    </select>
+                </div>
+                <div class="form-group" id="passcodeGroup" style="display: none;">
+                    <label class="form-label">Enter Passcode</label>
+                    <input type="password" class="form-control" id="loginPasscode" placeholder="4-digit passcode" maxlength="4">
+                </div>
+                <button class="btn btn-primary btn-block" id="loginButton">
+                    <i class="fas fa-sign-in-alt"></i> Login
+                </button>
+                <div class="form-group" style="margin-top: 20px; text-align: center;">
+                    <p style="color: var(--gray); font-size: 14px;">
+                        <i class="fas fa-info-circle"></i> First time? Default passcode is 1234
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Passcode Modal -->
+    <div class="modal-overlay" id="passcodeModal" style="display: none;">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 class="modal-title"><i class="fas fa-lock"></i> Private Inventory Access</h2>
+                <button class="modal-close" id="closePasscodeModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p style="margin-bottom: 20px; color: var(--gray);">
+                    Enter your passcode to access private inventory
+                </p>
+                <div class="form-group">
+                    <label class="form-label">Passcode</label>
+                    <input type="password" class="form-control" id="passcodeInput" placeholder="Enter 4-digit passcode" maxlength="4">
+                </div>
+                <div style="display: flex; gap: 15px; margin-top: 30px;">
+                    <button class="btn btn-primary" id="submitPasscode">
+                        <i class="fas fa-key"></i> Submit
+                    </button>
+                    <button class="btn" id="cancelPasscode" style="background: var(--light);">
+                        Cancel
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main App Container -->
+    <div class="container" id="appContainer" style="display: none;">
+        <!-- Header -->
+        <header>
+            <div class="logo">
+                <div class="logo-icon">
+                    <i class="fas fa-home"></i>
+                </div>
+                <div class="logo-text">
+                    <h1>FamilySync</h1>
+                    <p>Home Inventory Management System</p>
+                </div>
+            </div>
+            
+            <div class="user-section">
+                <div class="user-avatar" id="userAvatar">JD</div>
+                <div class="user-dropdown" id="userDropdown">
+                    <div class="user-info">
+                        <div class="user-name" id="dropdownUserName">John Doe</div>
+                        <div class="user-email" id="dropdownUserEmail">john@family.com</div>
+                    </div>
+                    <div class="dropdown-item" id="switchUserBtn">
+                        <i class="fas fa-exchange-alt"></i> Switch User
+                    </div>
+                    <div class="dropdown-item" id="myProfileBtn">
+                        <i class="fas fa-user"></i> My Profile
+                    </div>
+                    <div class="dropdown-item" id="settingsBtn">
+                        <i class="fas fa-cog"></i> Settings
+                    </div>
+                    <div class="dropdown-item logout" id="logoutBtn">
+                        <i class="fas fa-sign-out-alt"></i> Logout
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Tabs -->
+        <div class="tabs-container">
+            <div class="tabs">
+                <div class="tab active" data-target="dashboard">
+                    <i class="fas fa-tachometer-alt"></i> Dashboard
+                </div>
+                <div class="tab" data-target="addItem">
+                    <i class="fas fa-plus-circle"></i> Add Item
+                </div>
+                <div class="tab" data-target="searchItems">
+                    <i class="fas fa-search"></i> Search
+                </div>
+                <div class="tab" data-target="familyInventory">
+                    <i class="fas fa-users"></i> Family Inventory
+                </div>
+                <div class="tab" data-target="privateInventory">
+                    <i class="fas fa-lock"></i> Private Inventory
+                </div>
+                <div class="tab" data-target="users">
+                    <i class="fas fa-user-friends"></i> Family Members
+                </div>
+                <div class="tab" data-target="analytics">
+                    <i class="fas fa-chart-bar"></i> Analytics
+                </div>
+            </div>
+        </div>
+
+        <!-- Dashboard Section -->
+        <section id="dashboard" class="content-section active">
+            <div class="section-header">
+                <h2 class="section-title"><i class="fas fa-tachometer-alt"></i> Dashboard</h2>
+                <p class="section-subtitle">Overview of your home inventory</p>
+            </div>
+            
+            <div class="stats-grid" id="dashboardStats">
+                <!-- Stats will be populated here -->
+            </div>
+            
+            <div class="section-header">
+                <h3 class="section-title"><i class="fas fa-history"></i> Recently Added Items</h3>
+            </div>
+            
+            <div class="inventory-grid" id="recentItems">
+                <!-- Recent items will be populated here -->
+            </div>
+        </section>
+
+        <!-- Add Item Section -->
+        <section id="addItem" class="content-section">
+            <div class="section-header">
+                <h2 class="section-title"><i class="fas fa-plus-circle"></i> Add New Item</h2>
+                <p class="section-subtitle">Add items to family or private inventory</p>
+            </div>
+            
+            <form id="addItemForm">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label class="form-label">Item Name *</label>
+                        <input type="text" class="form-control" id="itemName" placeholder="e.g., Passport, Toolbox, Medicine" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Location *</label>
+                        <input type="text" class="form-control" id="itemLocation" placeholder="e.g., Kitchen drawer, Bedroom closet" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Category</label>
+                        <select class="form-control" id="itemCategory">
+                            <option value="">Select Category</option>
+                            <option value="documents">Documents</option>
+                            <option value="tools">Tools</option>
+                            <option value="electronics">Electronics</option>
+                            <option value="kitchen">Kitchen Items</option>
+                            <option value="clothing">Clothing</option>
+                            <option value="medicine">Medicine</option>
+                            <option value="valuables">Valuables</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Quantity</label>
+                        <input type="number" class="form-control" id="itemQuantity" value="1" min="1">
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Description</label>
+                    <textarea class="form-control form-textarea" id="itemDescription" placeholder="Add any details about the item..."></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Inventory Type</label>
+                    <div class="radio-group">
+                        <label class="radio-option">
+                            <input type="radio" name="inventoryType" value="family" checked>
+                            <i class="fas fa-users"></i> Family Inventory (Visible to all)
+                        </label>
+                        <label class="radio-option">
+                            <input type="radio" name="inventoryType" value="private">
+                            <i class="fas fa-lock"></i> Private Inventory (Passcode protected)
+                        </label>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Item Photo (Optional)</label>
+                    <div class="photo-upload-area" id="photoUploadArea">
+                        <i class="fas fa-camera" style="font-size: 48px; color: var(--gray); margin-bottom: 15px;"></i>
+                        <h3 style="margin-bottom: 10px;">Click to upload photo</h3>
+                        <p style="color: var(--gray);">JPG, PNG, or GIF - Max 5MB</p>
+                        <img id="photoPreview" class="photo-preview" alt="Preview">
+                    </div>
+                    <input type="file" id="itemPhoto" accept="image/*" style="display: none;">
+                </div>
+                
+                <button type="submit" class="btn btn-primary btn-block" style="margin-top: 20px;">
+                    <i class="fas fa-save"></i> Save Item to Inventory
+                </button>
+            </form>
+        </section>
+
+        <!-- Search Section -->
+        <section id="searchItems" class="content-section">
+            <div class="section-header">
+                <h2 class="section-title"><i class="fas fa-search"></i> Search Inventory</h2>
+                <p class="section-subtitle">Find items by name, location, or category</p>
+            </div>
+            
+            <div class="search-container">
+                <div class="search-box">
+                    <input type="text" class="search-input" id="searchInput" placeholder="Search for items...">
+                    <select class="form-control" id="searchCategory" style="width: 200px;">
+                        <option value="">All Categories</option>
+                        <option value="documents">Documents</option>
+                        <option value="tools">Tools</option>
+                        <option value="electronics">Electronics</option>
+                        <option value="kitchen">Kitchen Items</option>
+                        <option value="clothing">Clothing</option>
+                        <option value="medicine">Medicine</option>
+                        <option value="valuables">Valuables</option>
+                        <option value="other">Other</option>
+                    </select>
+                    <button class="btn btn-primary" id="searchButton">
+                        <i class="fas fa-search"></i> Search
+                    </button>
+                </div>
+            </div>
+            
+            <div class="inventory-grid" id="searchResults">
+                <!-- Search results will be populated here -->
+            </div>
+        </section>
+
+        <!-- Family Inventory Section -->
+        <section id="familyInventory" class="content-section">
+            <div class="section-header">
+                <h2 class="section-title"><i class="fas fa-users"></i> Family Inventory</h2>
+                <p class="section-subtitle">Items visible to all family members</p>
+            </div>
+            
+            <div class="inventory-grid" id="familyItems">
+                <!-- Family items will be populated here -->
+            </div>
+        </section>
+
+        <!-- Private Inventory Section -->
+        <section id="privateInventory" class="content-section">
+            <div class="section-header">
+                <h2 class="section-title"><i class="fas fa-lock"></i> Private Inventory</h2>
+                <p class="section-subtitle">Your personal items (passcode protected)</p>
+            </div>
+            
+            <div class="inventory-grid" id="privateItems">
+                <!-- Private items will be populated here -->
+            </div>
+        </section>
+
+        <!-- Users Section -->
+        <section id="users" class="content-section">
+            <div class="section-header">
+                <h2 class="section-title"><i class="fas fa-user-friends"></i> Family Members</h2>
+                <p class="section-subtitle">All members with access to the family inventory</p>
+            </div>
+            
+            <div class="users-grid" id="familyMembersList">
+                <!-- Family members will be populated here -->
+            </div>
+        </section>
+
+        <!-- Analytics Section -->
+        <section id="analytics" class="content-section">
+            <div class="section-header">
+                <h2 class="section-title"><i class="fas fa-chart-bar"></i> Analytics</h2>
+                <p class="section-subtitle">Inventory statistics and insights</p>
+            </div>
+            
+            <div class="stats-grid" id="analyticsStats">
+                <!-- Analytics stats will be populated here -->
+            </div>
+            
+            <div class="section-header" style="margin-top: 40px;">
+                <h3 class="section-title"><i class="fas fa-chart-pie"></i> Category Distribution</h3>
+            </div>
+            
+            <div style="background: white; padding: 30px; border-radius: var(--border-radius); box-shadow: var(--shadow);">
+                <div id="categoryChart" style="height: 300px; display: flex; align-items: center; justify-content: center; color: var(--gray);">
+                    Category chart will appear here
+                </div>
+            </div>
+            
+            <div class="section-header" style="margin-top: 40px;">
+                <h3 class="section-title"><i class="fas fa-history"></i> Recent Activity</h3>
+            </div>
+            
+            <div style="background: white; padding: 30px; border-radius: var(--border-radius); box-shadow: var(--shadow);">
+                <div id="activityLog">
+                    <!-- Activity log will be populated here -->
+                </div>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer>
+            <p>FamilySync Home Inventory System &copy; 2023 | Academic Project - University Submission</p>
+            <p style="margin-top: 10px; font-size: 12px;">
+                <i class="fas fa-database"></i> Data stored locally in your browser | 
+                <i class="fas fa-user-shield"></i> Multi-user with privacy protection
+            </p>
+        </footer>
+    </div>
+
+    <!-- Notification Container -->
+    <div id="notificationContainer"></div>
+
+    <script>
+        // ============================================
+        // FAMILYSYNC - COMPLETE HOME INVENTORY SYSTEM
+        // ============================================
+        // Features:
+        // 1. Multi-user authentication with passcodes
+        // 2. LocalStorage persistence for all data
+        // 3. Private inventories with passcode protection
+        // 4. Photo storage using Base64 encoding
+        // 5. Full CRUD operations
+        // 6. Real-time search and filtering
+        // 7. Statistics and analytics
+        // 8. Responsive design
+        // ============================================
+
+        // ===== STORAGE MANAGER =====
+        class StorageManager {
+            constructor() {
+                this.usersKey = 'familySync_users';
+                this.itemsKey = 'familySync_items';
+                this.settingsKey = 'familySync_settings';
+                this.activityKey = 'familySync_activity';
+                this.currentUserKey = 'familySync_currentUser';
+            }
+
+            // Save data to localStorage
+            save(key, data) {
+                try {
+                    localStorage.setItem(key, JSON.stringify(data));
+                    return true;
+                } catch (e) {
+                    console.error('Error saving to localStorage:', e);
+                    this.showNotification('error', 'Storage error! Data not saved.');
+                    return false;
+                }
+            }
+
+            // Load data from localStorage
+            load(key) {
+                try {
+                    const data = localStorage.getItem(key);
+                    return data ? JSON.parse(data) : null;
+                } catch (e) {
+                    console.error('Error loading from localStorage:', e);
+                    return null;
+                }
+            }
+
+            // Clear all data (for debugging)
+            clearAll() {
+                localStorage.clear();
+                this.showNotification('success', 'All data cleared successfully.');
+            }
+
+            // Show notification
+            showNotification(type, message) {
+                const notification = document.createElement('div');
+                notification.className = `notification notification-${type}`;
+                notification.innerHTML = `
+                    <div class="notification-icon">
+                        <i class="fas fa-${type === 'success' ? 'check' : type === 'error' ? 'times' : 'exclamation'}"></i>
+                    </div>
+                    <div>
+                        <strong>${type === 'success' ? 'Success!' : type === 'error' ? 'Error!' : 'Warning!'}</strong>
+                        <p style="margin-top: 5px;">${message}</p>
+                    </div>
+                `;
+                
+                document.getElementById('notificationContainer').appendChild(notification);
+                
+                setTimeout(() => notification.classList.add('show'), 100);
+                setTimeout(() => {
+                    notification.classList.remove('show');
+                    setTimeout(() => notification.remove(), 300);
+                }, 3000);
+            }
+        }
+
+        // ===== USER MANAGER =====
+        class UserManager {
+            constructor(storage) {
+                this.storage = storage;
+                this.users = this.loadUsers();
+                this.currentUser = null;
+            }
+
+            // Load users from storage or create defaults
+            loadUsers() {
+                let users = this.storage.load(this.storage.usersKey);
+                
+                if (!users) {
+                    // Create default users for first-time use
+                    users = [
+                        {
+                            id: 1,
+                            name: "John Doe",
+                            email: "john@family.com",
+                            role: "admin",
+                            passcode: "1234",
+                            avatarColor: "#4361ee",
+                            initials: "JD",
+                            joinDate: new Date().toISOString()
+                        },
+                        {
+                            id: 2,
+                            name: "Jane Smith",
+                            email: "jane@family.com",
+                            role: "member",
+                            passcode: "2345",
+                            avatarColor: "#4ade80",
+                            initials: "JS",
+                            joinDate: new Date().toISOString()
+                        },
+                        {
+                            id: 3,
+                            name: "Mike Johnson",
+                            email: "mike@family.com",
+                            role: "member",
+                            passcode: "3456",
+                            avatarColor: "#4cc9f0",
+                            initials: "MJ",
+                            joinDate: new Date().toISOString()
+                        },
+                        {
+                            id: 4,
+                            name: "Sarah Williams",
+                            email: "sarah@family.com",
+                            role: "member",
+                            passcode: "4567",
+                            avatarColor: "#f59e0b",
+                            initials: "SW",
+                            joinDate: new Date().toISOString()
+                        }
+                    ];
+                    this.storage.save(this.storage.usersKey, users);
+                }
+                
+                return users;
+            }
+
+            // Save users to storage
+            saveUsers() {
+                return this.storage.save(this.storage.usersKey, this.users);
+            }
+
+            // Authenticate user
+            authenticate(userId, passcode) {
+                const user = this.users.find(u => u.id === userId);
+                if (!user) {
+                    return { success: false, message: "User not found" };
+                }
+                
+                if (user.passcode !== passcode) {
+                    return { success: false, message: "Incorrect passcode" };
+                }
+                
+                this.currentUser = user;
+                this.storage.save(this.storage.currentUserKey, user);
+                return { success: true, user };
+            }
+
+            // Get current user
+            getCurrentUser() {
+                if (!this.currentUser) {
+                    this.currentUser = this.storage.load(this.storage.currentUserKey);
+                }
+                return this.currentUser;
+            }
+
+            // Logout current user
+            logout() {
+                this.currentUser = null;
+                localStorage.removeItem(this.storage.currentUserKey);
+            }
+
+            // Add new user
+            addUser(userData) {
+                const newUser = {
+                    id: this.users.length + 1,
+                    ...userData,
+                    joinDate: new Date().toISOString()
+                };
+                
+                this.users.push(newUser);
+                this.saveUsers();
+                return newUser;
+            }
+
+            // Update user
+            updateUser(userId, updates) {
+                const index = this.users.findIndex(u => u.id === userId);
+                if (index !== -1) {
+                    this.users[index] = { ...this.users[index], ...updates };
+                    this.saveUsers();
+                    return this.users[index];
+                }
+                return null;
+            }
+
+            // Get user by ID
+            getUserById(userId) {
+                return this.users.find(u => u.id === userId);
+            }
+
+            // Get all users
+            getAllUsers() {
+                return this.users;
+            }
+        }
+
+        // ===== INVENTORY MANAGER =====
+        class InventoryManager {
+            constructor(storage, userManager) {
+                this.storage = storage;
+                this.userManager = userManager;
+                this.items = this.loadItems();
+            }
+
+            // Load items from storage
+            loadItems() {
+                let items = this.storage.load(this.storage.itemsKey);
+                
+                if (!items) {
+                    // Create sample items for first-time use
+                    items = [
+                        {
+                            id: 1,
+                            name: "Family Passports",
+                            location: "Master bedroom safe",
+                            category: "documents",
+                            quantity: 4,
+                            description: "All family passports in blue folder",
+                            type: "private",
+                            addedBy: 1,
+                            addedByName: "John Doe",
+                            photo: null,
+                            createdAt: "2023-10-15T10:30:00Z",
+                            updatedAt: "2023-10-15T10:30:00Z"
+                        },
+                        {
+                            id: 2,
+                            name: "Toolbox Set",
+                            location: "Garage shelf - left side",
+                            category: "tools",
+                            quantity: 1,
+                            description: "Complete toolbox with all essential tools",
+                            type: "family",
+                            addedBy: 3,
+                            addedByName: "Mike Johnson",
+                            photo: null,
+                            createdAt: "2023-10-10T14:20:00Z",
+                            updatedAt: "2023-10-10T14:20:00Z"
+                        },
+                        {
+                            id: 3,
+                            name: "First Aid Kit",
+                            location: "Kitchen cabinet above fridge",
+                            category: "medicine",
+                            quantity: 1,
+                            description: "Emergency medical supplies",
+                            type: "family",
+                            addedBy: 2,
+                            addedByName: "Jane Smith",
+                            photo: null,
+                            createdAt: "2023-10-05T09:15:00Z",
+                            updatedAt: "2023-10-05T09:15:00Z"
+                        },
+                        {
+                            id: 4,
+                            name: "Christmas Decorations",
+                            location: "Basement storage - Box #3",
+                            category: "other",
+                            quantity: 5,
+                            description: "All holiday decorations and lights",
+                            type: "family",
+                            addedBy: 4,
+                            addedByName: "Sarah Williams",
+                            photo: null,
+                            createdAt: "2023-09-28T16:45:00Z",
+                            updatedAt: "2023-09-28T16:45:00Z"
+                        },
+                        {
+                            id: 5,
+                            name: "Jewelry Box",
+                            location: "Walk-in closet top shelf",
+                            category: "valuables",
+                            quantity: 1,
+                            description: "Family heirloom jewelry",
+                            type: "private",
+                            addedBy: 2,
+                            addedByName: "Jane Smith",
+                            photo: null,
+                            createdAt: "2023-10-01T11:20:00Z",
+                            updatedAt: "2023-10-01T11:20:00Z"
+                        }
+                    ];
+                    this.storage.save(this.storage.itemsKey, items);
+                }
+                
+                return items;
+            }
+
+            // Save items to storage
+            saveItems() {
+                return this.storage.save(this.storage.itemsKey, this.items);
+            }
+
+            // Add new item
+            addItem(itemData) {
+                const currentUser = this.userManager.getCurrentUser();
+                if (!currentUser) {
+                    return { success: false, message: "No user logged in" };
+                }
+
+                const newItem = {
+                    id: this.items.length + 1,
+                    ...itemData,
+                    addedBy: currentUser.id,
+                    addedByName: currentUser.name,
+                    createdAt: new Date().toISOString(),
+                    updatedAt: new Date().toISOString()
+                };
+
+                this.items.push(newItem);
+                this.saveItems();
+                
+                // Log activity
+                this.logActivity('added', newItem);
+                
+                return { success: true, item: newItem };
+            }
+
+            // Update item
+            updateItem(itemId, updates) {
+                const index = this.items.findIndex(item => item.id === itemId);
+                if (index === -1) {
+                    return { success: false, message: "Item not found" };
+                }
+
+                const currentUser = this.userManager.getCurrentUser();
+                if (this.items[index].type === 'private' && this.items[index].addedBy !== currentUser.id) {
+                    return { success: false, message: "Cannot edit other user's private items" };
+                }
+
+                this.items[index] = {
+                    ...this.items[index],
+                    ...updates,
+                    updatedAt: new Date().toISOString()
+                };
+
+                this.saveItems();
+                this.logActivity('updated', this.items[index]);
+                
+                return { success: true, item: this.items[index] };
+            }
+
+            // Delete item
+            deleteItem(itemId) {
+                const index = this.items.findIndex(item => item.id === itemId);
+                if (index === -1) {
+                    return { success: false, message: "Item not found" };
+                }
+
+                const currentUser = this.userManager.getCurrentUser();
+                if (this.items[index].type === 'private' && this.items[index].addedBy !== currentUser.id) {
+                    return { success: false, message: "Cannot delete other user's private items" };
+                }
+
+                const deletedItem = this.items[index];
+                this.items.splice(index, 1);
+                this.saveItems();
+                
+                this.logActivity('deleted', deletedItem);
+                
+                return { success: true, item: deletedItem };
+            }
+
+            // Get item by ID
+            getItemById(itemId) {
+                return this.items.find(item => item.id === itemId);
+            }
+
+            // Get all items (with user-based filtering)
+            getAllItems() {
+                const currentUser = this.userManager.getCurrentUser();
+                if (!currentUser) return [];
+                
+                return this.items.filter(item => 
+                    item.type === 'family' || item.addedBy === currentUser.id
+                );
+            }
+
+            // Get family items
+            getFamilyItems() {
+                return this.items.filter(item => item.type === 'family');
+            }
+
+            // Get private items for current user
+            getPrivateItems() {
+                const currentUser = this.userManager.getCurrentUser();
+                if (!currentUser) return [];
+                
+                return this.items.filter(item => 
+                    item.type === 'private' && item.addedBy === currentUser.id
+                );
+            }
+
+            // Search items
+            searchItems(query, category = '') {
+                const currentUser = this.userManager.getCurrentUser();
+                if (!currentUser) return [];
+                
+                const searchTerm = query.toLowerCase().trim();
+                
+                return this.items.filter(item => {
+                    // Check access
+                    if (item.type === 'private' && item.addedBy !== currentUser.id) {
+                        return false;
+                    }
+                    
+                    // Check category filter
+                    if (category && item.category !== category) {
+                        return false;
+                    }
+                    
+                    // Check search term
+                    if (!searchTerm) return true;
+                    
+                    return (
+                        item.name.toLowerCase().includes(searchTerm) ||
+                        item.location.toLowerCase().includes(searchTerm) ||
+                        item.description.toLowerCase().includes(searchTerm) ||
+                        item.category.toLowerCase().includes(searchTerm)
+                    );
+                });
+            }
+
+            // Get recent items
+            getRecentItems(limit = 6) {
+                const accessibleItems = this.getAllItems();
+                return accessibleItems
+                    .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+                    .slice(0, limit);
+            }
+
+            // Get statistics
+            getStatistics() {
+                const currentUser = this.userManager.getCurrentUser();
+                if (!currentUser) return null;
+                
+                const allItems = this.getAllItems();
+                const familyItems = this.getFamilyItems();
+                const privateItems = this.getPrivateItems();
+                
+                // Category distribution
+                const categories = {};
+                allItems.forEach(item => {
+                    categories[item.category] = (categories[item.category] || 0) + 1;
+                });
+                
+                return {
+                    totalItems: allItems.length,
+                    familyItems: familyItems.length,
+                    privateItems: privateItems.length,
+                    categories,
+                    recentlyAdded: this.getRecentItems(5)
+                };
+            }
+
+            // Log activity
+            logActivity(action, item) {
+                const currentUser = this.userManager.getCurrentUser();
+                if (!currentUser) return;
+                
+                let activities = this.storage.load(this.storage.activityKey) || [];
+                
+                const activity = {
+                    id: activities.length + 1,
+                    userId: currentUser.id,
+                    userName: currentUser.name,
+                    action,
+                    itemId: item.id,
+                    itemName: item.name,
+                    timestamp: new Date().toISOString()
+                };
+                
+                activities.unshift(activity);
+                if (activities.length > 50) activities = activities.slice(0, 50);
+                
+                this.storage.save(this.storage.activityKey, activities);
+            }
+
+            // Get recent activity
+            getRecentActivity(limit = 10) {
+                return this.storage.load(this.storage.activityKey) || [];
+            }
+        }
+
+        // ===== UI MANAGER =====
+        class UIManager {
+            constructor(storage, userManager, inventoryManager) {
+                this.storage = storage;
+                this.userManager = userManager;
+                this.inventoryManager = inventoryManager;
+                this.currentTab = 'dashboard';
+                this.privateAccessGranted = false;
+                this.photoData = null;
+            }
+
+            // Initialize UI
+            async init() {
+                this.bindEvents();
+                this.populateLoginUsers();
+                
+                // Check if user is already logged in
+                const currentUser = this.userManager.getCurrentUser();
+                if (currentUser) {
+                    await this.handleSuccessfulLogin(currentUser);
+                } else {
+                    this.showLoginModal();
+                }
+                
+                // Hide loading overlay
+                setTimeout(() => {
+                    document.getElementById('loadingOverlay').style.display = 'none';
+                }, 1000);
+            }
+
+            // Bind event listeners
+            bindEvents() {
+                // Login modal events
+                document.getElementById('loginUserSelect').addEventListener('change', (e) => {
+                    const passcodeGroup = document.getElementById('passcodeGroup');
+                    passcodeGroup.style.display = e.target.value ? 'block' : 'none';
+                });
+                
+                document.getElementById('loginButton').addEventListener('click', () => this.handleLogin());
+                
+                // Passcode modal events
+                document.getElementById('closePasscodeModal').addEventListener('click', () => this.hidePasscodeModal());
+                document.getElementById('cancelPasscode').addEventListener('click', () => this.hidePasscodeModal());
+                document.getElementById('submitPasscode').addEventListener('click', () => this.verifyPasscode());
+                
+                // User dropdown events
+                document.getElementById('userAvatar').addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    document.getElementById('userDropdown').classList.toggle('show');
+                });
+                
+                document.getElementById('switchUserBtn').addEventListener('click', () => this.switchUser());
+                document.getElementById('logoutBtn').addEventListener('click', () => this.logout());
+                document.getElementById('myProfileBtn').addEventListener('click', () => this.showProfile());
+                document.getElementById('settingsBtn').addEventListener('click', () => this.showSettings());
+                
+                // Close dropdown when clicking outside
+                document.addEventListener('click', () => {
+                    document.getElementById('userDropdown').classList.remove('show');
+                });
+                
+                // Tab switching
+                document.querySelectorAll('.tab').forEach(tab => {
+                    tab.addEventListener('click', (e) => {
+                        const target = e.currentTarget.getAttribute('data-target');
+                        this.switchTab(target);
+                    });
+                });
+                
+                // Add item form
+                document.getElementById('addItemForm').addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    this.handleAddItem();
+                });
+                
+                // Photo upload
+                document.getElementById('photoUploadArea').addEventListener('click', () => {
+                    document.getElementById('itemPhoto').click();
+                });
+                
+                document.getElementById('itemPhoto').addEventListener('change', (e) => {
+                    this.handlePhotoUpload(e);
+                });
+                
+                // Search
+                document.getElementById('searchButton').addEventListener('click', () => this.performSearch());
+                document.getElementById('searchInput').addEventListener('keyup', (e) => {
+                    if (e.key === 'Enter') this.performSearch();
+                });
+                document.getElementById('searchCategory').addEventListener('change', () => this.performSearch());
+            }
+
+            // Populate login users dropdown
+            populateLoginUsers() {
+                const select = document.getElementById('loginUserSelect');
+                select.innerHTML = '<option value="">Choose a user...</option>';
+                
+                this.userManager.getAllUsers().forEach(user => {
+                    const option = document.createElement('option');
+                    option.value = user.id;
+                    option.textContent = `${user.name} (${user.role})`;
+                    select.appendChild(option);
+                });
+            }
+
+            // Handle login
+            handleLogin() {
+                const userId = parseInt(document.getElementById('loginUserSelect').value);
+                const passcode = document.getElementById('loginPasscode').value;
+                
+                if (!userId) {
+                    this.storage.showNotification('error', 'Please select a user');
+                    return;
+                }
+                
+                if (!passcode) {
+                    this.storage.showNotification('error', 'Please enter passcode');
+                    return;
+                }
+                
+                const result = this.userManager.authenticate(userId, passcode);
+                if (result.success) {
+                    this.hideLoginModal();
+                    this.handleSuccessfulLogin(result.user);
+                } else {
+                    this.storage.showNotification('error', result.message);
+                }
+            }
+
+            // Handle successful login
+            async handleSuccessfulLogin(user) {
+                // Update UI
+                document.getElementById('userAvatar').textContent = user.initials;
+                document.getElementById('userAvatar').style.background = `linear-gradient(135deg, ${user.avatarColor}, ${this.lightenColor(user.avatarColor, 20)})`;
+                document.getElementById('dropdownUserName').textContent = user.name;
+                document.getElementById('dropdownUserEmail').textContent = user.email;
+                
+                // Show main app
+                document.getElementById('appContainer').style.display = 'block';
+                
+                // Load initial data
+                await this.loadDashboard();
+                this.switchTab('dashboard');
+                
+                // Show welcome notification
+                this.storage.showNotification('success', `Welcome back, ${user.name.split(' ')[0]}!`);
+            }
+
+            // Hide login modal
+            hideLoginModal() {
+                document.getElementById('loginModal').style.display = 'none';
+            }
+
+            // Show login modal
+            showLoginModal() {
+                document.getElementById('loginModal').style.display = 'flex';
+                document.getElementById('appContainer').style.display = 'none';
+                document.getElementById('passcodeGroup').style.display = 'none';
+                document.getElementById('loginPasscode').value = '';
+            }
+
+            // Switch user
+            switchUser() {
+                this.userManager.logout();
+                this.showLoginModal();
+                document.getElementById('userDropdown').classList.remove('show');
+            }
+
+            // Logout
+            logout() {
+                this.userManager.logout();
+                this.showLoginModal();
+                document.getElementById('userDropdown').classList.remove('show');
+                this.storage.showNotification('success', 'Logged out successfully');
+            }
+
+            // Show profile (placeholder)
+            showProfile() {
+                const user = this.userManager.getCurrentUser();
+                alert(`Profile: ${user.name}\nEmail: ${user.email}\nRole: ${user.role}\n\nProfile editing will be implemented in future version.`);
+                document.getElementById('userDropdown').classList.remove('show');
+            }
+
+            // Show settings (placeholder)
+            showSettings() {
+                alert('Settings panel will be implemented in future version.');
+                document.getElementById('userDropdown').classList.remove('show');
+            }
+
+            // Switch tabs
+            switchTab(tabId) {
+                // Handle private inventory access
+                if (tabId === 'privateInventory' && !this.privateAccessGranted) {
+                    this.showPasscodeModal();
+                    return;
+                }
+                
+                // Update active tab
+                document.querySelectorAll('.tab').forEach(tab => {
+                    if (tab.getAttribute('data-target') === tabId) {
+                        tab.classList.add('active');
+                    } else {
+                        tab.classList.remove('active');
+                    }
+                });
+                
+                // Show active content
+                document.querySelectorAll('.content-section').forEach(section => {
+                    if (section.id === tabId) {
+                        section.classList.add('active');
+                    } else {
+                        section.classList.remove('active');
+                    }
+                });
+                
+                // Load content for the tab
+                this.currentTab = tabId;
+                
+                switch(tabId) {
+                    case 'dashboard':
+                        this.loadDashboard();
+                        break;
+                    case 'familyInventory':
+                        this.loadFamilyInventory();
+                        break;
+                    case 'privateInventory':
+                        this.loadPrivateInventory();
+                        break;
+                    case 'searchItems':
+                        this.performSearch();
+                        break;
+                    case 'users':
+                        this.loadUsers();
+                        break;
+                    case 'analytics':
+                        this.loadAnalytics();
+                        break;
+                }
+            }
+
+            // Load dashboard
+            loadDashboard() {
+                const stats = this.inventoryManager.getStatistics();
+                if (!stats) return;
+                
+                // Update stats
+                const statsHTML = `
+                    <div class="stat-card">
+                        <div class="stat-value">${stats.totalItems}</div>
+                        <div class="stat-label">Total Items</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">${stats.familyItems}</div>
+                        <div class="stat-label">Family Items</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">${stats.privateItems}</div>
+                        <div class="stat-label">Private Items</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">${Object.keys(stats.categories).length}</div>
+                        <div class="stat-label">Categories</div>
+                    </div>
+                `;
+                
+                document.getElementById('dashboardStats').innerHTML = statsHTML;
+                
+                // Update recent items
+                this.updateInventoryGrid('recentItems', this.inventoryManager.getRecentItems());
+            }
+
+            // Load family inventory
+            loadFamilyInventory() {
+                const items = this.inventoryManager.getFamilyItems();
+                this.updateInventoryGrid('familyItems', items);
+            }
+
+            // Load private inventory
+            loadPrivateInventory() {
+                const items = this.inventoryManager.getPrivateItems();
+                this.updateInventoryGrid('privateItems', items);
+            }
+
+            // Update inventory grid
+            updateInventoryGrid(containerId, items) {
+                const container = document.getElementById(containerId);
+                
+                if (!items || items.length === 0) {
+                    container.innerHTML = `
+                        <div class="empty-state" style="grid-column: 1 / -1;">
+                            <div class="empty-state-icon">
+                                <i class="fas fa-box-open"></i>
+                            </div>
+                            <h3 class="empty-state-title">No items found</h3>
+                            <p class="empty-state-text">
+                                ${containerId === 'familyItems' ? 
+                                    'No items in family inventory yet. Add items to make them visible to all family members.' :
+                                    containerId === 'privateItems' ?
+                                    'No items in your private inventory. Add private items to keep them secure.' :
+                                    'No recent items to display.'}
+                            </p>
+                            ${containerId !== 'searchResults' ? `
+                                <button class="btn btn-primary" onclick="app.ui.switchTab('addItem')">
+                                    <i class="fas fa-plus-circle"></i> Add New Item
+                                </button>
+                            ` : ''}
+                        </div>
+                    `;
+                    return;
+                }
+                
+                container.innerHTML = items.map(item => this.createItemCard(item)).join('');
+                
+                // Add event listeners to action buttons
+                items.forEach(item => {
+                    // Mark as found
+                    const foundBtn = document.getElementById(`foundBtn-${item.id}`);
+                    if (foundBtn) {
+                        foundBtn.addEventListener('click', () => this.markAsFound(item.id));
+                    }
+                    
+                    // Edit item
+                    const editBtn = document.getElementById(`editBtn-${item.id}`);
+                    if (editBtn) {
+                        editBtn.addEventListener('click', () => this.editItem(item.id));
+                    }
+                    
+                    // Delete item
+                    const deleteBtn = document.getElementById(`deleteBtn-${item.id}`);
+                    if (deleteBtn) {
+                        deleteBtn.addEventListener('click', () => this.deleteItem(item.id));
+                    }
+                });
+            }
+
+            // Create item card HTML
+            createItemCard(item) {
+                const currentUser = this.userManager.getCurrentUser();
+                const isOwner = currentUser && item.addedBy === currentUser.id;
+                const isPrivate = item.type === 'private';
+                
+                // Format date
+                const date = new Date(item.createdAt);
+                const dateStr = date.toLocaleDateString('en-US', { 
+                    year: 'numeric', 
+                    month: 'short', 
+                    day: 'numeric' 
+                });
+                
+                // Category icon mapping
+                const categoryIcons = {
+                    documents: 'fa-file-alt',
+                    tools: 'fa-tools',
+                    electronics: 'fa-plug',
+                    kitchen: 'fa-utensils',
+                    clothing: 'fa-tshirt',
+                    medicine: 'fa-first-aid',
+                    valuables: 'fa-gem',
+                    other: 'fa-box'
+                };
+                
+                const categoryIcon = categoryIcons[item.category] || 'fa-box';
+                
+                return `
+                    <div class="inventory-card ${isPrivate ? 'private' : ''}">
+                        <div class="card-header">
+                            <div>
+                                <h3 class="card-title">${item.name}</h3>
+                                <span class="card-category">
+                                    <i class="fas ${categoryIcon}"></i> ${item.category}
+                                </span>
+                            </div>
+                            ${isPrivate ? `
+                                <span class="private-badge">
+                                    <i class="fas fa-lock"></i> Private
+                                </span>
+                            ` : ''}
+                        </div>
+                        
+                        <div class="card-body">
+                            <div class="card-info">
+                                <i class="fas fa-map-marker-alt"></i>
+                                <span>${item.location}</span>
+                            </div>
+                            
+                            <div class="card-info">
+                                <i class="fas fa-box"></i>
+                                <span>Quantity: ${item.quantity}</span>
+                            </div>
+                            
+                            ${item.photo ? `
+                                <img src="${item.photo}" class="card-photo" alt="${item.name}">
+                            ` : ''}
+                            
+                            ${item.description ? `
+                                <p class="card-description">${item.description}</p>
+                            ` : ''}
+                        </div>
+                        
+                        <div class="card-footer">
+                            <div class="card-date">
+                                Added ${dateStr} by ${item.addedByName}
+                                ${isOwner ? ' <i class="fas fa-user-check" style="color: var(--success);"></i>' : ''}
+                            </div>
+                            
+                            <div class="card-actions">
+                                <button class="btn btn-success" id="foundBtn-${item.id}" style="padding: 8px 15px; font-size: 14px;">
+                                    <i class="fas fa-check"></i> Found
+                                </button>
+                                ${isOwner ? `
+                                    <button class="btn btn-warning" id="editBtn-${item.id}" style="padding: 8px 15px; font-size: 14px;">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    <button class="btn btn-danger" id="deleteBtn-${item.id}" style="padding: 8px 15px; font-size: 14px;">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                ` : ''}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            // Handle add item
+            handleAddItem() {
+                const currentUser = this.userManager.getCurrentUser();
+                if (!currentUser) {
+                    this.storage.showNotification('error', 'Please login first');
+                    return;
+                }
+                
+                const itemData = {
+                    name: document.getElementById('itemName').value.trim(),
+                    location: document.getElementById('itemLocation').value.trim(),
+                    category: document.getElementById('itemCategory').value || 'other',
+                    quantity: parseInt(document.getElementById('itemQuantity').value) || 1,
+                    description: document.getElementById('itemDescription').value.trim(),
+                    type: document.querySelector('input[name="inventoryType"]:checked').value,
+                    photo: this.photoData
+                };
+                
+                // Validate
+                if (!itemData.name || !itemData.location) {
+                    this.storage.showNotification('error', 'Please fill in required fields');
+                    return;
+                }
+                
+                const result = this.inventoryManager.addItem(itemData);
+                if (result.success) {
+                    // Reset form
+                    document.getElementById('addItemForm').reset();
+                    document.getElementById('photoPreview').style.display = 'none';
+                    document.getElementById('photoPreview').src = '';
+                    this.photoData = null;
+                    
+                    // Show success message
+                    this.storage.showNotification('success', `"${itemData.name}" added to ${itemData.type === 'family' ? 'Family' : 'Private'} Inventory`);
+                    
+                    // If private item, show passcode modal
+                    if (itemData.type === 'private') {
+                        this.showPasscodeModal();
+                    } else {
+                        // Switch to family inventory tab
+                        this.switchTab('familyInventory');
+                    }
+                } else {
+                    this.storage.showNotification('error', result.message);
+                }
+            }
+
+            // Handle photo upload
+            handlePhotoUpload(event) {
+                const file = event.target.files[0];
+                if (!file) return;
+                
+                // Validate file size (max 5MB)
+                if (file.size > 5 * 1024 * 1024) {
+                    this.storage.showNotification('error', 'File size must be less than 5MB');
+                    return;
+                }
+                
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    this.photoData = e.target.result;
+                    const preview = document.getElementById('photoPreview');
+                    preview.src = this.photoData;
+                    preview.style.display = 'block';
+                };
+                reader.readAsDataURL(file);
+            }
+
+            // Perform search
+            performSearch() {
+                const query = document.getElementById('searchInput').value;
+                const category = document.getElementById('searchCategory').value;
+                
+                const results = this.inventoryManager.searchItems(query, category);
+                this.updateInventoryGrid('searchResults', results);
+            }
+
+            // Mark item as found
+            markAsFound(itemId) {
+                const item = this.inventoryManager.getItemById(itemId);
+                if (item) {
+                    this.storage.showNotification('success', `Marked "${item.name}" as found!`);
+                    // In a real app, you might update item status here
+                }
+            }
+
+            // Edit item (placeholder)
+            editItem(itemId) {
+                const item = this.inventoryManager.getItemById(itemId);
+                if (item) {
+                    alert(`Edit functionality for "${item.name}" would open in a real application.\n\nItem details:\n- Name: ${item.name}\n- Location: ${item.location}\n- Category: ${item.category}\n- Type: ${item.type}`);
+                }
+            }
+
+            // Delete item
+            deleteItem(itemId) {
+                if (!confirm('Are you sure you want to delete this item? This action cannot be undone.')) {
+                    return;
+                }
+                
+                const result = this.inventoryManager.deleteItem(itemId);
+                if (result.success) {
+                    this.storage.showNotification('success', `"${result.item.name}" deleted successfully`);
+                    
+                    // Refresh current view
+                    switch(this.currentTab) {
+                        case 'dashboard':
+                            this.loadDashboard();
+                            break;
+                        case 'familyInventory':
+                            this.loadFamilyInventory();
+                            break;
+                        case 'privateInventory':
+                            this.loadPrivateInventory();
+                            break;
+                        case 'searchItems':
+                            this.performSearch();
+                            break;
+                    }
+                } else {
+                    this.storage.showNotification('error', result.message);
+                }
+            }
+
+            // Show passcode modal
+            showPasscodeModal() {
+                document.getElementById('passcodeModal').style.display = 'flex';
+                document.getElementById('passcodeInput').value = '';
+                document.getElementById('passcodeInput').focus();
+            }
+
+            // Hide passcode modal
+            hidePasscodeModal() {
+                document.getElementById('passcodeModal').style.display = 'none';
+            }
+
+            // Verify passcode
+            verifyPasscode() {
+                const currentUser = this.userManager.getCurrentUser();
+                const enteredPasscode = document.getElementById('passcodeInput').value;
+                
+                if (!currentUser) {
+                    this.storage.showNotification('error', 'Please login first');
+                    this.hidePasscodeModal();
+                    return;
+                }
+                
+                if (enteredPasscode === currentUser.passcode) {
+                    this.privateAccessGranted = true;
+                    this.hidePasscodeModal();
+                    
+                    // Update private tab icon
+                    const privateTab = document.querySelector('.tab[data-target="privateInventory"]');
+                    privateTab.innerHTML = '<i class="fas fa-unlock"></i> Private Inventory';
+                    
+                    // Load private inventory
+                    this.switchTab('privateInventory');
+                    
+                    this.storage.showNotification('success', 'Private inventory unlocked');
+                } else {
+                    this.storage.showNotification('error', 'Incorrect passcode');
+                    document.getElementById('passcodeInput').value = '';
+                    document.getElementById('passcodeInput').focus();
+                }
+            }
+
+            // Load users
+            loadUsers() {
+                const users = this.userManager.getAllUsers();
+                const items = this.inventoryManager.getAllItems();
+                
+                const usersHTML = users.map(user => {
+                    // Count user's items
+                    const userItems = items.filter(item => item.addedBy === user.id);
+                    const familyItems = userItems.filter(item => item.type === 'family').length;
+                    const privateItems = userItems.filter(item => item.type === 'private').length;
+                    
+                    return `
+                        <div class="user-card">
+                            <div class="user-card-avatar" style="background: linear-gradient(135deg, ${user.avatarColor}, ${this.lightenColor(user.avatarColor, 20)})">
+                                ${user.initials}
+                            </div>
+                            <h3 class="user-card-name">${user.name}</h3>
+                            <span class="user-card-role">${user.role}</span>
+                            <p style="color: var(--gray); margin: 10px 0; font-size: 14px;">${user.email}</p>
+                            
+                            <div class="user-card-stats">
+                                <div class="stat-small">
+                                    <div class="stat-small-value">${userItems.length}</div>
+                                    <div class="stat-small-label">Total Items</div>
+                                </div>
+                                <div class="stat-small">
+                                    <div class="stat-small-value">${familyItems}</div>
+                                    <div class="stat-small-label">Family</div>
+                                </div>
+                                <div class="stat-small">
+                                    <div class="stat-small-value">${privateItems}</div>
+                                    <div class="stat-small-label">Private</div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+                
+                document.getElementById('familyMembersList').innerHTML = usersHTML;
+            }
+
+            // Load analytics
+            loadAnalytics() {
+                const stats = this.inventoryManager.getStatistics();
+                if (!stats) return;
+                
+                // Update stats
+                const analyticsStatsHTML = `
+                    <div class="stat-card">
+                        <div class="stat-value">${stats.totalItems}</div>
+                        <div class="stat-label">Total Items</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">${stats.familyItems}</div>
+                        <div class="stat-label">Family Items</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">${stats.privateItems}</div>
+                        <div class="stat-label">Private Items</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">${Object.values(stats.categories).reduce((a, b) => a + b, 0)}</div>
+                        <div class="stat-label">All Categories</div>
+                    </div>
+                `;
+                
+                document.getElementById('analyticsStats').innerHTML = analyticsStatsHTML;
+                
+                // Create category chart (simple text version for now)
+                const categoryChart = document.getElementById('categoryChart');
+                let chartHTML = '<div style="width: 100%;">';
+                
+                Object.entries(stats.categories).forEach(([category, count]) => {
+                    const percentage = (count / stats.totalItems * 100).toFixed(1);
+                    chartHTML += `
+                        <div style="margin-bottom: 15px;">
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                                <span style="font-weight: 600; color: var(--dark);">${category}</span>
+                                <span style="color: var(--primary);">${count} items (${percentage}%)</span>
+                            </div>
+                            <div style="height: 10px; background: var(--light-gray); border-radius: 5px; overflow: hidden;">
+                                <div style="width: ${percentage}%; height: 100%; background: var(--primary); border-radius: 5px;"></div>
+                            </div>
+                        </div>
+                    `;
+                });
+                
+                chartHTML += '</div>';
+                categoryChart.innerHTML = chartHTML;
+                
+                // Load activity log
+                const activities = this.inventoryManager.getRecentActivity();
+                const activityLog = document.getElementById('activityLog');
+                
+                if (activities.length === 0) {
+                    activityLog.innerHTML = '<p style="color: var(--gray); text-align: center;">No recent activity</p>';
+                    return;
+                }
+                
+                activityLog.innerHTML = activities.map(activity => {
+                    const date = new Date(activity.timestamp);
+                    const timeStr = date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+                    const dateStr = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                    
+                    const actionIcons = {
+                        added: 'fa-plus-circle',
+                        updated: 'fa-edit',
+                        deleted: 'fa-trash'
+                    };
+                    
+                    const actionColors = {
+                        added: 'var(--success)',
+                        updated: 'var(--warning)',
+                        deleted: 'var(--danger)'
+                    };
+                    
+                    return `
+                        <div style="display: flex; align-items: center; gap: 15px; padding: 15px 0; border-bottom: 1px solid var(--light-gray);">
+                            <div style="width: 40px; height: 40px; border-radius: 50%; background: ${actionColors[activity.action]}; color: white; display: flex; align-items: center; justify-content: center;">
+                                <i class="fas ${actionIcons[activity.action]}"></i>
+                            </div>
+                            <div style="flex: 1;">
+                                <div style="font-weight: 600; color: var(--dark);">
+                                    ${activity.userName} ${activity.action} "${activity.itemName}"
+                                </div>
+                                <div style="font-size: 14px; color: var(--gray); margin-top: 5px;">
+                                    ${dateStr} at ${timeStr}
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            }
+
+            // Utility function to lighten color
+            lightenColor(color, percent) {
+                const num = parseInt(color.replace("#", ""), 16);
+                const amt = Math.round(2.55 * percent);
+                const R = (num >> 16) + amt;
+                const G = (num >> 8 & 0x00FF) + amt;
+                const B = (num & 0x0000FF) + amt;
+                
+                return "#" + (
+                    0x1000000 +
+                    (R < 255 ? R < 1 ? 0 : R : 255) * 0x10000 +
+                    (G < 255 ? G < 1 ? 0 : G : 255) * 0x100 +
+                    (B < 255 ? B < 1 ? 0 : B : 255)
+                ).toString(16).slice(1);
+            }
+        }
+
+        // ===== MAIN APPLICATION =====
+        class FamilySyncApp {
+            constructor() {
+                this.storage = new StorageManager();
+                this.userManager = new UserManager(this.storage);
+                this.inventoryManager = new InventoryManager(this.storage, this.userManager);
+                this.ui = new UIManager(this.storage, this.userManager, this.inventoryManager);
+            }
+
+            // Initialize the application
+            init() {
+                this.ui.init();
+            }
+
+            // Export data (for backup)
+            exportData() {
+                const data = {
+                    users: this.userManager.getAllUsers(),
+                    items: this.inventoryManager.getAllItems(),
+                    exportDate: new Date().toISOString()
+                };
+                
+                const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `familysync-backup-${new Date().toISOString().split('T')[0]}.json`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                
+                this.storage.showNotification('success', 'Data exported successfully');
+            }
+
+            // Import data (from backup)
+            importData(file) {
+                if (!file) return;
+                
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    try {
+                        const data = JSON.parse(e.target.result);
+                        
+                        if (data.users && data.items) {
+                            this.storage.save(this.storage.usersKey, data.users);
+                            this.storage.save(this.storage.itemsKey, data.items);
+                            
+                            // Reload managers
+                            this.userManager.users = this.userManager.loadUsers();
+                            this.inventoryManager.items = this.inventoryManager.loadItems();
+                            
+                            // Refresh UI
+                            this.ui.loadDashboard();
+                            this.ui.loadFamilyInventory();
+                            this.ui.loadPrivateInventory();
+                            
+                            this.storage.showNotification('success', 'Data imported successfully');
+                        } else {
+                            this.storage.showNotification('error', 'Invalid backup file format');
+                        }
+                    } catch (error) {
+                        this.storage.showNotification('error', 'Error parsing backup file');
+                    }
+                };
+                reader.readAsText(file);
+            }
+
+            // Clear all data (debug function)
+            clearAllData() {
+                if (confirm('WARNING: This will delete ALL data including users and items. Are you sure?')) {
+                    this.storage.clearAll();
+                    location.reload();
+                }
+            }
+        }
+
+        // ===== INITIALIZE APP =====
+        window.app = new FamilySyncApp();
+        
+        // Initialize when DOM is loaded
+        document.addEventListener('DOMContentLoaded', () => {
+            app.init();
+        });
+
+        // Make app available globally for debugging
+        window.familySync = {
+            app: window.app,
+            exportData: () => app.exportData(),
+            importData: () => {
+                const input = document.createElement('input');
+                input.type = 'file';
+                input.accept = '.json';
+                input.onchange = (e) => app.importData(e.target.files[0]);
+                input.click();
+            },
+            clearData: () => app.clearAllData()
+        };
+    </script>
+</body>
+</html>
